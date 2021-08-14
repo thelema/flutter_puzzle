@@ -77,8 +77,8 @@ class _MyHomePageState extends State<MyHomePage> {
               imageSize: imageSize,
               row: x,
               col: y,
-              maxRow: widget.rows,
-              maxCol: widget.cols,
+              rowPerm: List.filled(widget.rows, 0),
+              colPerm: List.filled(widget.cols, 0),
               bringToTop: this.bringToTop));
         });
       }

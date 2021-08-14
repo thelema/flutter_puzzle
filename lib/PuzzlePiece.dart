@@ -5,11 +5,14 @@ import 'package:flutter/material.dart';
 class PuzzlePiece extends StatefulWidget {
   final Image image;
   final Size imageSize;
-  final int row;
-  final int col;
-  final int maxRow;
-  final int maxCol;
+  final int row; // my row
+  final int col; // my col
+  final List<int> rowPerm; // current row permutation
+  final List<int> colPerm; // current column permutation
   final Function bringToTop;
+
+  int get maxRow => rowPerm.length;
+  int get maxCol => colPerm.length;
 
   PuzzlePiece(
       {Key? key,
@@ -17,8 +20,8 @@ class PuzzlePiece extends StatefulWidget {
       required this.imageSize,
       required this.row,
       required this.col,
-      required this.maxRow,
-      required this.maxCol,
+      required this.rowPerm,
+      required this.colPerm,
       required this.bringToTop})
       : super(key: key);
 
@@ -35,10 +38,12 @@ class PuzzlePieceState extends State<PuzzlePiece> {
 
   @override
   Widget build(BuildContext context) {
-    final imageWidth = MediaQuery.of(context).size.width;
-    final imageHeight = MediaQuery.of(context).size.height *
-        MediaQuery.of(context).size.width /
-        widget.imageSize.width;
+    final Size contextSize = MediaQuery.of(context).size;
+    final Size imageSize = widget.imageSize;
+    final fitScale = min(contextSize.width / imageSize.width,
+        contextSize.height / imageSize.height);
+    final imageWidth = contextSize.width * fitScale;
+    final imageHeight = contextSize.height * fitScale;
     final pieceWidth = imageWidth / widget.maxCol;
     final pieceHeight = imageHeight / widget.maxRow;
 
@@ -62,8 +67,9 @@ class PuzzlePieceState extends State<PuzzlePiece> {
             setState(() {
               top = top! + dragUpdateDetails.delta.dy;
               left = left! + dragUpdateDetails.delta.dx;
-
-              if (-10 < top! && top! < 10 && -10 < left! && left! < 10) {
+              final xsnap = 10;
+              final ysnap = 10;
+              if (top!.abs() < ysnap && left!.abs() < xsnap) {
                 top = 0;
                 left = 0;
                 isMovable = false;
@@ -72,11 +78,10 @@ class PuzzlePieceState extends State<PuzzlePiece> {
           }
         },
         child: ClipPath(
-          child: widget.image,
-          // child:  CustomPaint(
-          // foregroundPainter: PuzzlePiecePainter(
-          //     widget.row, widget.col, widget.maxRow, widget.maxCol),
-          //child: widget.image),
+          child: CustomPaint(
+              foregroundPainter: PuzzlePiecePainter(
+                  widget.row, widget.col, widget.maxRow, widget.maxCol),
+              child: widget.image),
           clipper: PuzzlePieceClipper(
               widget.row, widget.col, widget.maxRow, widget.maxCol),
         ),
@@ -103,30 +108,30 @@ class PuzzlePieceClipper extends CustomClipper<Path> {
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
-// // this class is used to draw a border around the clipped image
-// class PuzzlePiecePainter extends CustomPainter {
-//   final int row;
-//   final int col;
-//   final int maxRow;
-//   final int maxCol;
+// this class is used to draw a border around the clipped image
+class PuzzlePiecePainter extends CustomPainter {
+  final int row;
+  final int col;
+  final int maxRow;
+  final int maxCol;
 
-//   PuzzlePiecePainter(this.row, this.col, this.maxRow, this.maxCol);
+  PuzzlePiecePainter(this.row, this.col, this.maxRow, this.maxCol);
 
-//   @override
-//   void paint(Canvas canvas, Size size) {
-//   final Paint paint = Paint()
-//     ..color = Color(0x80FFFFFF)
-//     ..style = PaintingStyle.stroke
-//     ..strokeWidth = 1.0;
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint paint = Paint()
+      ..color = Color(0x80FFFFFF)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
 
-//   canvas.drawPath(getPiecePath(size, row, col, maxRow, maxCol), paint);
-//   }
+    canvas.drawPath(getPiecePath(size, row, col, maxRow, maxCol), paint);
+  }
 
-//   @override
-//   bool shouldRepaint(CustomPainter oldDelegate) {
-//     return false;
-//   }
-// }
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return false;
+  }
+}
 
 // this is the path used to clip the image and, then, to draw a border around it; here we actually draw the puzzle piece
 Path getPiecePath(Size size, int row, int col, int maxRow, int maxCol) {
@@ -136,13 +141,6 @@ Path getPiecePath(Size size, int row, int col, int maxRow, int maxCol) {
   final offsetY = row * height;
 
   var path = Path();
-  path.moveTo(offsetX, offsetY);
-
-  path.lineTo(offsetX + width, offsetY);
-  path.lineTo(offsetX + width, offsetY + height);
-  path.lineTo(offsetX, offsetY + height);
-
-  path.close();
-
+  path.addRect(Offset(offsetX, offsetY) & Size(width, height));
   return path;
 }
