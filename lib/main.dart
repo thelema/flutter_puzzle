@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
 import 'package:flutter_puzzle/PuzzlePiece.dart';
 
@@ -22,31 +20,30 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  final String title;
+  final String? title;
   final int rows = 3;
   final int cols = 3;
 
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key? key, this.title}) : super(key: key);
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  File _image;
+  Image? _image;
   List<Widget> pieces = [];
 
-  Future getImage(ImageSource source) async {
-    var image = await ImagePicker.pickImage(source: source);
+  void getImage() {
+    var image = Image(image: AssetImage('assets/img.png'));
+    // if (image != null) {
+    setState(() {
+      _image = image;
+      pieces.clear();
+    });
 
-    if (image != null) {
-      setState(() {
-        _image = image;
-        pieces.clear();
-      });
-
-      splitImage(Image.file(image));
-    }
+    splitImage(image);
+    // }
   }
 
   // we need to find out the image size, to be used in the PuzzlePiece widget
@@ -109,7 +106,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(widget.title ?? "No Title"),
       ),
       body: SafeArea(
         child: new Center(
@@ -119,35 +116,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          showModalBottomSheet(
-              context: context,
-              builder: (BuildContext context) {
-                return SafeArea(
-                  child: new Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      new ListTile(
-                        leading: new Icon(Icons.camera),
-                        title: new Text('Camera'),
-                        onTap: () {
-                          getImage(ImageSource.camera);
-                          // this is how you dismiss the modal bottom sheet after making a choice
-                          Navigator.pop(context);
-                        },
-                      ),
-                      new ListTile(
-                        leading: new Icon(Icons.image),
-                        title: new Text('Gallery'),
-                        onTap: () {
-                          getImage(ImageSource.gallery);
-                          // dismiss the modal sheet
-                          Navigator.pop(context);
-                        },
-                      ),
-                    ],
-                  ),
-                );
-              });
+          getImage();
         },
         tooltip: 'New Image',
         child: Icon(Icons.add),
