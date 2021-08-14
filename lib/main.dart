@@ -35,7 +35,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Widget> pieces = [];
 
   void getImage() {
-    var image = Image(image: AssetImage('assets/img.png'));
+    var image = Image(image: AssetImage('assets/img.jpg'));
     // if (image != null) {
     setState(() {
       _image = image;
