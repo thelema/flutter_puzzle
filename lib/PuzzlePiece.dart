@@ -10,7 +10,6 @@ class PuzzlePiece extends StatefulWidget {
   final int maxRow;
   final int maxCol;
   final Function bringToTop;
-  final Function sendToBack;
 
   PuzzlePiece(
       {Key? key,
@@ -20,8 +19,7 @@ class PuzzlePiece extends StatefulWidget {
       required this.col,
       required this.maxRow,
       required this.maxCol,
-      required this.bringToTop,
-      required this.sendToBack})
+      required this.bringToTop})
       : super(key: key);
 
   @override
@@ -54,11 +52,6 @@ class PuzzlePieceState extends State<PuzzlePiece> {
       left: left,
       width: imageWidth,
       child: GestureDetector(
-        onTap: () {
-          if (isMovable) {
-            widget.bringToTop(widget);
-          }
-        },
         onPanStart: (_) {
           if (isMovable) {
             widget.bringToTop(widget);
@@ -74,16 +67,16 @@ class PuzzlePieceState extends State<PuzzlePiece> {
                 top = 0;
                 left = 0;
                 isMovable = false;
-                widget.sendToBack(widget);
               }
             });
           }
         },
         child: ClipPath(
-          child: CustomPaint(
-              foregroundPainter: PuzzlePiecePainter(
-                  widget.row, widget.col, widget.maxRow, widget.maxCol),
-              child: widget.image),
+          child: widget.image,
+          // child:  CustomPaint(
+          // foregroundPainter: PuzzlePiecePainter(
+          //     widget.row, widget.col, widget.maxRow, widget.maxCol),
+          //child: widget.image),
           clipper: PuzzlePieceClipper(
               widget.row, widget.col, widget.maxRow, widget.maxCol),
         ),
@@ -110,30 +103,30 @@ class PuzzlePieceClipper extends CustomClipper<Path> {
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
-// this class is used to draw a border around the clipped image
-class PuzzlePiecePainter extends CustomPainter {
-  final int row;
-  final int col;
-  final int maxRow;
-  final int maxCol;
+// // this class is used to draw a border around the clipped image
+// class PuzzlePiecePainter extends CustomPainter {
+//   final int row;
+//   final int col;
+//   final int maxRow;
+//   final int maxCol;
 
-  PuzzlePiecePainter(this.row, this.col, this.maxRow, this.maxCol);
+//   PuzzlePiecePainter(this.row, this.col, this.maxRow, this.maxCol);
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..color = Color(0x80FFFFFF)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
+//   @override
+//   void paint(Canvas canvas, Size size) {
+//   final Paint paint = Paint()
+//     ..color = Color(0x80FFFFFF)
+//     ..style = PaintingStyle.stroke
+//     ..strokeWidth = 1.0;
 
-    canvas.drawPath(getPiecePath(size, row, col, maxRow, maxCol), paint);
-  }
+//   canvas.drawPath(getPiecePath(size, row, col, maxRow, maxCol), paint);
+//   }
 
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) {
-    return false;
-  }
-}
+//   @override
+//   bool shouldRepaint(CustomPainter oldDelegate) {
+//     return false;
+//   }
+// }
 
 // this is the path used to clip the image and, then, to draw a border around it; here we actually draw the puzzle piece
 Path getPiecePath(Size size, int row, int col, int maxRow, int maxCol) {

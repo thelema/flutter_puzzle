@@ -79,8 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
               col: y,
               maxRow: widget.rows,
               maxCol: widget.cols,
-              bringToTop: this.bringToTop,
-              sendToBack: this.sendToBack));
+              bringToTop: this.bringToTop));
         });
       }
     }
