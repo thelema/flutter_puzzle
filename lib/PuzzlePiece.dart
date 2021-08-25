@@ -7,23 +7,21 @@ class PuzzlePiece extends StatefulWidget {
   final Size imageSize;
   final int row; // my row
   final int col; // my col
-  final List<int> rowPerm; // current row permutation
-  final List<int> colPerm; // current column permutation
-  final Function bringToTop;
+  // final Function bringToTop;
 
-  int get maxRow => rowPerm.length;
-  int get maxCol => colPerm.length;
+  final int maxRow;
+  final int maxCol;
 
-  PuzzlePiece(
-      {Key? key,
-      required this.image,
-      required this.imageSize,
-      required this.row,
-      required this.col,
-      required this.rowPerm,
-      required this.colPerm,
-      required this.bringToTop})
-      : super(key: key);
+  PuzzlePiece({
+    Key? key,
+    required this.image,
+    required this.imageSize,
+    required this.row,
+    required this.col,
+    required this.maxRow,
+    required this.maxCol,
+    // required this.bringToTop,
+  }) : super(key: key);
 
   @override
   PuzzlePieceState createState() {
@@ -32,9 +30,9 @@ class PuzzlePiece extends StatefulWidget {
 }
 
 class PuzzlePieceState extends State<PuzzlePiece> {
-  double? top;
-  double? left;
-  bool isMovable = true;
+  // double? top;
+  // double? left;
+  // bool isMovable = true;
 
   @override
   Widget build(BuildContext context) {
@@ -47,44 +45,17 @@ class PuzzlePieceState extends State<PuzzlePiece> {
     final pieceWidth = imageWidth / widget.maxCol;
     final pieceHeight = imageHeight / widget.maxRow;
 
-    top ??= Random().nextInt((imageHeight - pieceHeight).ceil()).toDouble() -
-        widget.row * pieceHeight;
-    left ??= Random().nextInt((imageWidth - pieceWidth).ceil()).toDouble() -
-        widget.col * pieceWidth;
-
     return Positioned(
-      top: top,
-      left: left,
+      top: -widget.row * pieceHeight,
+      left: -widget.col * pieceWidth,
       width: imageWidth,
-      child: GestureDetector(
-        onPanStart: (_) {
-          if (isMovable) {
-            widget.bringToTop(widget);
-          }
-        },
-        onPanUpdate: (dragUpdateDetails) {
-          if (isMovable) {
-            setState(() {
-              top = top! + dragUpdateDetails.delta.dy;
-              left = left! + dragUpdateDetails.delta.dx;
-              final xsnap = 10;
-              final ysnap = 10;
-              if (top!.abs() < ysnap && left!.abs() < xsnap) {
-                top = 0;
-                left = 0;
-                isMovable = false;
-              }
-            });
-          }
-        },
-        child: ClipPath(
-          child: CustomPaint(
-              foregroundPainter: PuzzlePiecePainter(
-                  widget.row, widget.col, widget.maxRow, widget.maxCol),
-              child: widget.image),
-          clipper: PuzzlePieceClipper(
-              widget.row, widget.col, widget.maxRow, widget.maxCol),
-        ),
+      child: ClipPath(
+        child: CustomPaint(
+            foregroundPainter: PuzzlePiecePainter(
+                widget.row, widget.col, widget.maxRow, widget.maxCol),
+            child: widget.image),
+        clipper: PuzzlePieceClipper(
+            widget.row, widget.col, widget.maxRow, widget.maxCol),
       ),
     );
   }

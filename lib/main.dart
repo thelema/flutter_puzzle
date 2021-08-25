@@ -1,8 +1,5 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-
-import 'package:flutter_puzzle/PuzzlePiece.dart';
+import 'package:flutter_puzzle/PuzzleArea.dart';
 
 void main() => runApp(MyApp());
 
@@ -21,8 +18,6 @@ class MyApp extends StatelessWidget {
 
 class MyHomePage extends StatefulWidget {
   final String? title;
-  final int rows = 3;
-  final int cols = 3;
 
   MyHomePage({Key? key, this.title}) : super(key: key);
 
@@ -32,73 +27,14 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   Image? _image;
-  List<Widget> pieces = [];
 
   void getImage() {
     var image = Image(image: AssetImage('assets/img.jpg'));
     // if (image != null) {
     setState(() {
       _image = image;
-      pieces.clear();
     });
-
-    splitImage(image);
     // }
-  }
-
-  // we need to find out the image size, to be used in the PuzzlePiece widget
-  Future<Size> getImageSize(Image image) async {
-    final Completer<Size> completer = Completer<Size>();
-
-    image.image.resolve(const ImageConfiguration()).addListener(
-      ImageStreamListener((ImageInfo info, bool _) {
-        completer.complete(Size(
-          info.image.width.toDouble(),
-          info.image.height.toDouble(),
-        ));
-      }),
-    );
-
-    final Size imageSize = await completer.future;
-
-    return imageSize;
-  }
-
-  // here we will split the image into small pieces using the rows and columns defined above; each piece will be added to a stack
-  void splitImage(Image image) async {
-    Size imageSize = await getImageSize(image);
-
-    for (int x = 0; x < widget.rows; x++) {
-      for (int y = 0; y < widget.cols; y++) {
-        setState(() {
-          pieces.add(PuzzlePiece(
-              key: GlobalKey(),
-              image: image,
-              imageSize: imageSize,
-              row: x,
-              col: y,
-              rowPerm: List.filled(widget.rows, 0),
-              colPerm: List.filled(widget.cols, 0),
-              bringToTop: this.bringToTop));
-        });
-      }
-    }
-  }
-
-  // when the pan of a piece starts, we need to bring it to the front of the stack
-  void bringToTop(Widget widget) {
-    setState(() {
-      pieces.remove(widget);
-      pieces.add(widget);
-    });
-  }
-
-  // when a piece reaches its final position, it will be sent to the back of the stack to not get in the way of other, still movable, pieces
-  void sendToBack(Widget widget) {
-    setState(() {
-      pieces.remove(widget);
-      pieces.insert(0, widget);
-    });
   }
 
   @override
@@ -108,11 +44,11 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title ?? "No Title"),
       ),
       body: SafeArea(
-        child: new Center(
-            child: _image == null
-                ? new Text('No image selected.')
-                : Stack(children: pieces)),
-      ),
+          child: new Center(
+        child: _image == null
+            ? new Text('No image selected.')
+            : new PuzzleArea(_image!),
+      )),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           getImage();
