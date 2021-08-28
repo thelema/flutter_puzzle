@@ -16,12 +16,11 @@ class PuzzlePiece extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Size contextSize = MediaQuery.of(context).size;
-    Rect r2 = Offset(rect.left, rect.top) & contextSize;
+    // Rect r2 = Offset(rect.left * scale, rect.top * scale) & contextSize;
     return ClipPath(
-      child:
-          CustomPaint(foregroundPainter: PuzzlePiecePainter(r2), child: image),
-      clipper: PuzzlePieceClipper(r2),
+      child: CustomPaint(
+          foregroundPainter: PuzzlePiecePainter(rect), child: image),
+      clipper: PuzzlePieceClipper(rect),
     );
   }
 }
