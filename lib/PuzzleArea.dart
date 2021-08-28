@@ -33,13 +33,13 @@ class PuzzleArea extends StatefulWidget {
 }
 
 class _MyPuzzleAreaState extends State<PuzzleArea> {
-  List rowPerm;
-  List colPerm;
+  List rowPos;
+  List colPos;
   List<PuzzlePiece> pieces;
 
   _MyPuzzleAreaState({required this.pieces, required Size ps})
-      : rowPerm = List.generate(PuzzleArea.rows, (i) => i * ps.height),
-        colPerm = List.generate(PuzzleArea.cols, (i) => i * ps.width);
+      : rowPos = List.generate(PuzzleArea.rows, (i) => i * ps.height),
+        colPos = List.generate(PuzzleArea.cols, (i) => i * ps.width);
 
   @override
   build(BuildContext context) {
@@ -50,22 +50,24 @@ class _MyPuzzleAreaState extends State<PuzzleArea> {
     final imageWidth = contextSize.width * fitScale;
     // final imageHeight = contextSize.height * fitScale;
     final placePiece = (PuzzlePiece w) => Positioned(
-        top: (rowPerm[w.row] - w.rect.top) * fitScale,
-        left: (colPerm[w.col] - w.rect.left) * fitScale,
+        top: (rowPos[w.row] - w.rect.top) * fitScale,
+        left: (colPos[w.col] - w.rect.left) * fitScale,
         width: imageWidth,
         child: GestureDetector(
           onPanUpdate: (dragUpdateDetails) {
-            // setState(() {
-            // top = top + dragUpdateDetails.delta.dy;
-            // left = left + dragUpdateDetails.delta.dx;
-            // final xsnap = 10;
-            // final ysnap = 10;
-            // if (top!.abs() < ysnap && left!.abs() < xsnap) {
-            //   top = 0;
-            //   left = 0;
-            //   // isMovable = false;
-            // }
-            // }
+            // print('Drag lp: ${dragUpdateDetails.localPosition}\n');
+
+            setState(() {
+              rowPos[w.row] += dragUpdateDetails.delta.dy;
+              colPos[w.col] += dragUpdateDetails.delta.dx;
+              // final xsnap = 10;
+              // final ysnap = 10;
+              // if (top!.abs() < ysnap && left!.abs() < xsnap) {
+              //   top = 0;
+              //   left = 0;
+              //   // isMovable = false;
+              // }
+            });
           },
           onPanEnd: (dragEndDetails) {
             // recompute permutation
