@@ -29,7 +29,7 @@ class PuzzleArea extends StatefulWidget {
 
   @override
   _MyPuzzleAreaState createState() =>
-      _MyPuzzleAreaState(pieces: splitImage(image, pieceSize), ps: pieceSize);
+      _MyPuzzleAreaState(pieces: splitImage(image, pieceSize));
 }
 
 class _DragMode {
@@ -39,15 +39,28 @@ class _DragMode {
 }
 
 class _MyPuzzleAreaState extends State<PuzzleArea> {
-  List rowPos;
-  List colPos;
+  List<int> rowDisp; // original row -> positioned row
+  List<int> colDisp; // original col -> positioned col
+  List<int> dispRow; // positioned row -> original row (inverse of rowDisp)
+  List<int> dispCol; // positioned col -> original col (inverse of colDisp)
   List<PuzzlePiece> pieces;
   _DragMode? dm;
   Offset dragOff = Offset.zero;
 
-  _MyPuzzleAreaState({required this.pieces, required Size ps})
-      : rowPos = List.generate(PuzzleArea.rows, (i) => i * ps.height),
-        colPos = List.generate(PuzzleArea.cols, (i) => i * ps.width);
+  _MyPuzzleAreaState({required this.pieces})
+      : rowDisp = List.generate(PuzzleArea.rows, (i) => i),
+        colDisp = List.generate(PuzzleArea.cols, (i) => i),
+        dispRow = List.generate(PuzzleArea.rows, (i) => i),
+        dispCol = List.generate(PuzzleArea.cols, (i) => i); //TODO: shuffle
+
+  static void swapEntries(List<int> perm, List<int> inv, int i, int j) {
+    final temp = perm[i];
+    perm[i] = perm[j];
+    perm[j] = temp;
+    // fix up inverse function
+    inv[perm[j]] = j;
+    inv[perm[i]] = i;
+  }
 
   Offset dragEffect(int r, int c) {
     final ldm = dm;
@@ -70,33 +83,59 @@ class _MyPuzzleAreaState extends State<PuzzleArea> {
     final imageWidth = contextSize.width * fitScale;
     // final imageHeight = contextSize.height * fitScale;
     final placePiece = (PuzzlePiece w) => Positioned(
-        top: (rowPos[w.row] - w.rect.top) * fitScale +
-            dragEffect(w.row, w.col).dy,
-        left: (colPos[w.col] - w.rect.left) * fitScale +
-            dragEffect(w.row, w.col).dx,
+        top:
+            (rowDisp[w.row] * widget.pieceSize.height - w.rect.top) * fitScale +
+                dragEffect(w.row, w.col).dy,
+        left:
+            (colDisp[w.col] * widget.pieceSize.width - w.rect.left) * fitScale +
+                dragEffect(w.row, w.col).dx,
         width: imageWidth,
         child: GestureDetector(
           onPanUpdate: (dragUpdateDetails) {
             const thresh = 10; // min pixels to drag to determine direction
             setState(() {
               dragOff += dragUpdateDetails.delta;
+              //       print("DO= $dragOff, dm=$dm\n");
               if (dm == null &&
                   (dragOff.dx.abs() > thresh || dragOff.dy.abs() > thresh)) {
                 final isRow = dragOff.dx.abs() < dragOff.dy.abs();
                 dm = _DragMode(isRow: isRow, idx: isRow ? w.row : w.col);
               }
+              if (dm != null) {
+                if (dm!.isRow) {
+                  final adjPos = (dragOff.dy < 0)
+                      ? rowDisp[w.row] - 1
+                      : rowDisp[w.row] + 1;
+                  if (adjPos < 0 || adjPos >= PuzzleArea.rows) return;
+                  print(
+                      'Rows: $rowDisp drag: $dragOff delta: ${widget.pieceSize.height}\n');
+                  if (widget.pieceSize.height * fitScale < dragOff.dy.abs()) {
+                    dragOff -= Offset(0, widget.pieceSize.height * fitScale);
+                    swapEntries(rowDisp, dispRow, w.row, dispRow[adjPos]);
+                    print('Rows: $rowDisp\n');
+                  }
+                } else {
+                  final adjPos = (dragOff.dx < 0)
+                      ? colDisp[w.col] - 1
+                      : colDisp[w.col] + 1;
+                  if (adjPos < 0 || adjPos > PuzzleArea.cols) return;
+                  print(
+                      'Cols: $colDisp drag: $dragOff delta: ${widget.pieceSize.height}\n');
+                  if (widget.pieceSize.width * fitScale < dragOff.dx.abs()) {
+                    swapEntries(colDisp, dispCol, w.col, dispCol[adjPos]);
+                    dragOff -= Offset(widget.pieceSize.width * fitScale, 0);
+                    print('Cols: $colDisp\n');
+                  }
+                }
+              }
             });
           },
           onPanEnd: (dragEndDetails) {
-            // recompute row positions
-            final de = dragEffect(w.row, w.col);
-            rowPos[w.row] += de.dy;
-            colPos[w.col] += de.dx;
-            // TODO: re-snap coordinates to grid
-
             // reset drag state
-            dm = null;
-            dragOff = Offset.zero;
+            setState(() {
+              dm = null;
+              dragOff = Offset.zero;
+            });
           },
           child: w,
         ));
