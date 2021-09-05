@@ -16,8 +16,7 @@ class PuzzlePiece extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Rect r2 = Offset(rect.left * scale, rect.top * scale) & contextSize;
-    return ClipPath(
+    return ClipRect(
       child: CustomPaint(
           foregroundPainter: PuzzlePiecePainter(rect), child: image),
       clipper: PuzzlePieceClipper(rect),
@@ -26,17 +25,17 @@ class PuzzlePiece extends StatelessWidget {
 }
 
 // this class is used to clip the image to the puzzle piece path
-class PuzzlePieceClipper extends CustomClipper<Path> {
+class PuzzlePieceClipper extends CustomClipper<Rect> {
   final Rect rect;
   PuzzlePieceClipper(this.rect);
 
   @override
-  Path getClip(Size size) {
-    return Path()..addRect(rect);
+  Rect getClip(Size size) {
+    return rect;
   }
 
   @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+  bool shouldReclip(CustomClipper<Rect> oldClipper) => false;
 }
 
 // this class is used to draw a border around the clipped image
