@@ -46,12 +46,15 @@ class _MyPuzzleAreaState extends State<PuzzleArea> {
   List<PuzzlePiece> pieces;
   _DragMode? dm;
   Offset dragOff = Offset.zero;
+  Random _rand = Random();
 
   _MyPuzzleAreaState({required this.pieces})
       : rowDisp = List.generate(PuzzleArea.rows, (i) => i),
         colDisp = List.generate(PuzzleArea.cols, (i) => i),
         dispRow = List.generate(PuzzleArea.rows, (i) => i),
-        dispCol = List.generate(PuzzleArea.cols, (i) => i); //TODO: shuffle
+        dispCol = List.generate(PuzzleArea.cols, (i) => i) {
+    _shuffle();
+  }
 
   static void swapEntries(List<int> perm, List<int> inv, int i, int j) {
     final temp = perm[i];
@@ -93,7 +96,7 @@ class _MyPuzzleAreaState extends State<PuzzleArea> {
         width: imageWidth,
         child: GestureDetector(
           onPanUpdate: (dragUpdateDetails) {
-            dragUpdate(dragUpdateDetails, w, fitScale);
+            _dragUpdate(dragUpdateDetails, w, fitScale);
           },
           onPanEnd: (dragEndDetails) {
             // reset drag state
@@ -108,7 +111,28 @@ class _MyPuzzleAreaState extends State<PuzzleArea> {
     return Stack(children: p2);
   }
 
-  void dragUpdate(
+  bool _isDone() {
+    for (int x = 0; x < PuzzleArea.cols; x++) if (dispRow[x] != x) return false;
+
+    for (int y = 0; y < PuzzleArea.rows; y++) if (dispCol[y] != y) return false;
+
+    return true;
+  }
+
+  void _shuffle() {
+    rowDisp.shuffle(_rand);
+    colDisp.shuffle(_rand);
+    // fix up inverse function
+    for (int x = 0; x < PuzzleArea.cols; x++) dispRow[rowDisp[x]] = x;
+
+    for (int y = 0; y < PuzzleArea.rows; y++) dispCol[colDisp[y]] = y;
+  }
+
+  void _checkDone() {
+    if (_isDone()) _shuffle();
+  }
+
+  void _dragUpdate(
       DragUpdateDetails dragUpdateDetails, PuzzlePiece w, double fitScale) {
     const thresh = 10; // min pixels to drag to determine direction
     setState(() {
@@ -124,23 +148,27 @@ class _MyPuzzleAreaState extends State<PuzzleArea> {
           final adjPos =
               (dragOff.dy < 0) ? rowDisp[w.row] - 1 : rowDisp[w.row] + 1;
           if (adjPos < 0 || adjPos >= PuzzleArea.rows) return;
-          print(
-              'Rows: $rowDisp drag: $dragOff delta: ${widget.pieceSize.height}\n');
+          // print(
+          //     'Rows: $rowDisp drag: $dragOff delta: ${widget.pieceSize.height}\n');
           if (widget.pieceSize.height * fitScale < dragOff.dy.abs()) {
-            dragOff -= Offset(0, widget.pieceSize.height * fitScale);
+            dragOff -=
+                Offset(0, widget.pieceSize.height * fitScale * dragOff.dy.sign);
             swapEntries(rowDisp, dispRow, w.row, dispRow[adjPos]);
-            print('Rows: $rowDisp\n');
+            _checkDone();
+            // print('Rows: $rowDisp\n');
           }
         } else {
           final adjPos =
               (dragOff.dx < 0) ? colDisp[w.col] - 1 : colDisp[w.col] + 1;
           if (adjPos < 0 || adjPos > PuzzleArea.cols) return;
-          print(
-              'Cols: $colDisp drag: $dragOff delta: ${widget.pieceSize.height}\n');
+          // print(
+          //     'Cols: $colDisp drag: $dragOff delta: ${widget.pieceSize.height}\n');
           if (widget.pieceSize.width * fitScale < dragOff.dx.abs()) {
             swapEntries(colDisp, dispCol, w.col, dispCol[adjPos]);
-            dragOff -= Offset(widget.pieceSize.width * fitScale, 0);
-            print('Cols: $colDisp\n');
+            dragOff -=
+                Offset(widget.pieceSize.width * fitScale * dragOff.dx.sign, 0);
+            _checkDone();
+            // print('Cols: $colDisp\n');
           }
         }
       }
