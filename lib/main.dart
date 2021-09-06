@@ -36,7 +36,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void getImage() {
     if (_images.isEmpty) {
-      _images.add(Image.asset('assets/img.jpg'));
+      for (final a in ['assets/Giraffe.jfif', 'assets/img.jpg'])
+        _images.add(Image.asset(a));
       // TODO: get images from other sources
       // final images = imageDir.listSync().expand((FileSystemEntity e) {
       //   if (!(e is File)) return [];
@@ -44,7 +45,7 @@ class _MyHomePageState extends State<MyHomePage> {
       //   return [e];
       // }).toList();
       // final image = Image.file(images[Random().nextInt(images.length)]);
-      final image = Image(image: AssetImage('assets/img.jpg'));
+//      final image = Image(image: AssetImage('assets/img.jpg'));
       // final image = Image.network(
       //     'https://images.unsplash.com/photo-1547721064-da6cfb341d50');
       // "https://www.kindacode.com/wp-content/uploads/2021/04/1.png");
