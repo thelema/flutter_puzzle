@@ -34,7 +34,7 @@ class PuzzleArea extends StatefulWidget {
 
 class _DragMode {
   bool isRow; //! whether we're dragging rows or columnns
-  int idx; //! the row/column we're dragging
+  List<int> idx; //! the row/columns we're dragging
   _DragMode({required this.isRow, required this.idx});
 }
 
@@ -56,23 +56,14 @@ class _MyPuzzleAreaState extends State<PuzzleArea> {
     _shuffle();
   }
 
-  static void swapEntries(List<int> perm, List<int> inv, int i, int j) {
-    final temp = perm[i];
-    perm[i] = perm[j];
-    perm[j] = temp;
-    // fix up inverse function
-    inv[perm[j]] = j;
-    inv[perm[i]] = i;
-  }
-
   Offset dragEffect(int r, int c) {
     final ldm = dm;
     if (ldm == null) return Offset.zero;
     if (ldm.isRow) {
-      if (r != ldm.idx) return Offset.zero;
+      if (!ldm.idx.contains(r)) return Offset.zero;
       return Offset(0, dragOff.dy);
     } else {
-      if (c != ldm.idx) return Offset.zero;
+      if (!ldm.idx.contains(c)) return Offset.zero;
       return Offset(dragOff.dx, 0);
     }
   }
@@ -141,30 +132,32 @@ class _MyPuzzleAreaState extends State<PuzzleArea> {
       if (dm == null &&
           (dragOff.dx.abs() > thresh || dragOff.dy.abs() > thresh)) {
         final isRow = dragOff.dx.abs() < dragOff.dy.abs();
-        dm = _DragMode(isRow: isRow, idx: isRow ? w.row : w.col);
+        dm = _DragMode(
+            isRow: isRow,
+            idx: isRow
+                ? _getCluster(w.row, rowDisp)
+                : _getCluster(w.col, colDisp));
       }
       if (dm != null) {
         if (dm!.isRow) {
-          final adjPos =
-              (dragOff.dy < 0) ? rowDisp[w.row] - 1 : rowDisp[w.row] + 1;
+          final adjPos = rowDisp[w.row] + dragOff.dy.sign.toInt();
           if (adjPos < 0 || adjPos >= PuzzleArea.rows) return;
           // print(
           //     'Rows: $rowDisp drag: $dragOff delta: ${widget.pieceSize.height}\n');
           if (widget.pieceSize.height * fitScale < dragOff.dy.abs()) {
+            rotatePos(rowDisp, dispRow, dm!.idx, dragOff.dy.sign.toInt());
             dragOff -=
                 Offset(0, widget.pieceSize.height * fitScale * dragOff.dy.sign);
-            swapEntries(rowDisp, dispRow, w.row, dispRow[adjPos]);
             _checkDone();
             // print('Rows: $rowDisp\n');
           }
         } else {
-          final adjPos =
-              (dragOff.dx < 0) ? colDisp[w.col] - 1 : colDisp[w.col] + 1;
+          final adjPos = colDisp[w.col] + dragOff.dx.sign.toInt();
           if (adjPos < 0 || adjPos > PuzzleArea.cols) return;
           // print(
           //     'Cols: $colDisp drag: $dragOff delta: ${widget.pieceSize.height}\n');
           if (widget.pieceSize.width * fitScale < dragOff.dx.abs()) {
-            swapEntries(colDisp, dispCol, w.col, dispCol[adjPos]);
+            rotatePos(colDisp, dispCol, dm!.idx, dragOff.dx.sign.toInt());
             dragOff -=
                 Offset(widget.pieceSize.width * fitScale * dragOff.dx.sign, 0);
             _checkDone();
@@ -173,5 +166,44 @@ class _MyPuzzleAreaState extends State<PuzzleArea> {
         }
       }
     });
+  }
+
+  List<int> _getCluster(int idx, List<int> idxDisp) {
+    List<int> ret = [idx];
+    for (int i = idx - 1; i >= 0; i--) {
+      if (idxDisp[i] - idxDisp[idx] != i - idx) break;
+      ret.insert(0, i);
+    }
+    for (int i = idx + 1; i < idxDisp.length; i++) {
+      if (idxDisp[i] - idxDisp[idx] != i - idx) break;
+      ret.add(i);
+    }
+
+    return ret;
+  }
+
+  static void rotatePos(
+      List<int> idxDisp, List<int> dispIdx, List<int> idx, int dir) {
+    assert(idx.isNotEmpty);
+    assert(dir.abs() == 1); // must be 1 or -1
+    print('Rotate $idxDisp, $dispIdx, $idx, $dir');
+    if (dir == 1) {
+      // moving down; move item from below idxes to above them
+      // A I0..If temp B => A temp I0..If B
+      final temp = dispIdx[idxDisp[idx.last] + 1];
+      idxDisp[temp] -= idx.length;
+      for (int i in idx) idxDisp[i]++;
+      // fix dispIdx
+      for (int i in [temp, ...idx]) dispIdx[idxDisp[i]] = i;
+    } else {
+      // moving up; move item from above idxes to below them
+      // A temp I0..If B => A I0..If temp B
+      final temp = dispIdx[idxDisp[idx.first] - 1];
+      idxDisp[temp] += idx.length;
+      for (int i in idx) idxDisp[i]--;
+      // fix dispIdx
+      for (int i in [temp, ...idx]) dispIdx[idxDisp[i]] = i;
+    }
+    print('is $idxDisp, $dispIdx');
   }
 }
