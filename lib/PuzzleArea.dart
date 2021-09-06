@@ -76,11 +76,12 @@ class _MyPuzzleAreaState extends State<PuzzleArea> {
 
   @override
   build(BuildContext context) {
-    final Size contextSize = MediaQuery.of(context).size;
+    // final Size contextSize = MediaQuery.of(context).size;
     final Size imageSize = widget.imageSize;
-    final fitScale = min<double>(contextSize.width / imageSize.width,
-        contextSize.height / imageSize.height);
-    final imageWidth = contextSize.width * fitScale;
+    final double fitScale = 1.0;
+    //min<double>(contextSize.width / imageSize.width,
+    // contextSize.height / imageSize.height);
+    final imageWidth = imageSize.width * fitScale;
     // final imageHeight = contextSize.height * fitScale;
     final placePiece = (PuzzlePiece w) => Positioned(
         top:
