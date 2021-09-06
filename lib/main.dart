@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_puzzle/PuzzleArea.dart';
@@ -29,14 +31,27 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   Image? _image;
+  List<Image> _images = [];
+  // final imageDir = Directory('C:\\Users\\ericn\\Downloads');
 
   void getImage() {
-    var image = Image(image: AssetImage('assets/img.jpg'));
-    // if (image != null) {
-    setState(() {
-      _image = image;
-    });
-    // }
+    if (_images.isEmpty) {
+      _images.add(Image.asset('assets/img.jpg'));
+      // TODO: get images from other sources
+      // final images = imageDir.listSync().expand((FileSystemEntity e) {
+      //   if (!(e is File)) return [];
+      //   if (p.extension(e.path) != '.jpg') return [];
+      //   return [e];
+      // }).toList();
+      // final image = Image.file(images[Random().nextInt(images.length)]);
+      final image = Image(image: AssetImage('assets/img.jpg'));
+      // final image = Image.network(
+      //     'https://images.unsplash.com/photo-1547721064-da6cfb341d50');
+      // "https://www.kindacode.com/wp-content/uploads/2021/04/1.png");
+    }
+    assert(_images.isNotEmpty);
+    final i0 = _images.removeLast();
+    setState(() => _image = i0);
   }
 
   // we need to find out the image size, to be used in the PuzzlePiece widget
@@ -52,9 +67,7 @@ class _MyHomePageState extends State<MyHomePage> {
       }),
     );
 
-    final Size imageSize = await completer.future;
-
-    return imageSize;
+    return await completer.future;
   }
 
   @override
@@ -75,9 +88,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         return PuzzleArea(_image!, snapshot.data!);
                       }))),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          getImage();
-        },
+        onPressed: () => getImage(),
         tooltip: 'New Image',
         child: Icon(Icons.add),
       ),
