@@ -94,6 +94,7 @@ class _MyPuzzleAreaState extends State<PuzzleArea> {
             setState(() {
               dm = null;
               dragOff = Offset.zero;
+              _checkDone();
             });
           },
           child: w,
@@ -142,26 +143,18 @@ class _MyPuzzleAreaState extends State<PuzzleArea> {
         if (dm!.isRow) {
           final adjPos = rowDisp[w.row] + dragOff.dy.sign.toInt();
           if (adjPos < 0 || adjPos >= PuzzleArea.rows) return;
-          // print(
-          //     'Rows: $rowDisp drag: $dragOff delta: ${widget.pieceSize.height}\n');
           if (widget.pieceSize.height * fitScale < dragOff.dy.abs()) {
             rotatePos(rowDisp, dispRow, dm!.idx, dragOff.dy.sign.toInt());
             dragOff -=
                 Offset(0, widget.pieceSize.height * fitScale * dragOff.dy.sign);
-            _checkDone();
-            // print('Rows: $rowDisp\n');
           }
         } else {
           final adjPos = colDisp[w.col] + dragOff.dx.sign.toInt();
           if (adjPos < 0 || adjPos > PuzzleArea.cols) return;
-          // print(
-          //     'Cols: $colDisp drag: $dragOff delta: ${widget.pieceSize.height}\n');
           if (widget.pieceSize.width * fitScale < dragOff.dx.abs()) {
             rotatePos(colDisp, dispCol, dm!.idx, dragOff.dx.sign.toInt());
             dragOff -=
                 Offset(widget.pieceSize.width * fitScale * dragOff.dx.sign, 0);
-            _checkDone();
-            // print('Cols: $colDisp\n');
           }
         }
       }
