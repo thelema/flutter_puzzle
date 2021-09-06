@@ -5,8 +5,8 @@ import 'PuzzlePiece.dart';
 import 'package:flutter/material.dart';
 
 class PuzzleArea extends StatefulWidget {
-  static const int rows = 3;
-  static const int cols = 3;
+  static const int rows = 8;
+  static const int cols = 8;
   final Image image;
   final Size imageSize;
   final Size pieceSize;
