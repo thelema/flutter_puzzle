@@ -7,29 +7,32 @@ import 'package:flutter/material.dart';
 class PuzzleArea extends StatefulWidget {
   static const int rows = 8;
   static const int cols = 8;
-  final Image image;
-  final Size imageSize;
-  final Size pieceSize;
+  final ImageInfo image;
+  final Size drawPieceSize;
 
-  PuzzleArea(this.image, this.imageSize)
-      : pieceSize = Size(imageSize.width / cols, imageSize.height / rows);
+  PuzzleArea(this.image) : drawPieceSize = Size(800 / cols, 800 / rows);
 
   // here we will split the image into small pieces using the rows and columns defined above; each piece will be added to a stack
-  static List<PuzzlePiece> splitImage(Image image, Size pieceSize) {
+  static List<PuzzlePiece> splitImage(
+      ImageInfo image, Size pieceSize, Size drawPieceSize) {
     List<PuzzlePiece> pieces = [];
     for (int x = 0; x < cols; x++) {
       for (int y = 0; y < rows; y++) {
         final rect =
             Offset(pieceSize.width * x, pieceSize.height * y) & pieceSize;
-        pieces.add(PuzzlePiece(image: image, rect: rect, col: x, row: y));
+        pieces.add(PuzzlePiece(
+            image: image, rect: rect, drawSize: drawPieceSize, col: x, row: y));
       }
     }
     return pieces;
   }
 
   @override
-  _MyPuzzleAreaState createState() =>
-      _MyPuzzleAreaState(pieces: splitImage(image, pieceSize));
+  _MyPuzzleAreaState createState() => _MyPuzzleAreaState(
+      pieces: splitImage(
+          image,
+          Size(image.image.width / cols, image.image.height / rows),
+          drawPieceSize));
 }
 
 class _DragMode {
@@ -71,23 +74,21 @@ class _MyPuzzleAreaState extends State<PuzzleArea> {
   @override
   build(BuildContext context) {
     // final Size contextSize = MediaQuery.of(context).size;
-    final Size imageSize = widget.imageSize;
-    final double fitScale = 1.0;
+    // final Size imageSize = Size(widget.image.image.width.toDouble(),
+    //     widget.image.image.height.toDouble());
     //min<double>(contextSize.width / imageSize.width,
     // contextSize.height / imageSize.height);
-    final imageWidth = imageSize.width * fitScale;
     // final imageHeight = contextSize.height * fitScale;
+    final pieceWidth = widget.drawPieceSize.width;
+    final pieceHeight = widget.drawPieceSize.height;
     final placePiece = (PuzzlePiece w) => Positioned(
-        top:
-            (rowDisp[w.row] * widget.pieceSize.height - w.rect.top) * fitScale +
-                dragEffect(w.row, w.col).dy,
-        left:
-            (colDisp[w.col] * widget.pieceSize.width - w.rect.left) * fitScale +
-                dragEffect(w.row, w.col).dx,
-        width: imageWidth,
+        top: (rowDisp[w.row] * pieceHeight) + dragEffect(w.row, w.col).dy,
+        left: (colDisp[w.col] * pieceWidth) + dragEffect(w.row, w.col).dx,
+        width: pieceWidth,
+        height: pieceHeight,
         child: GestureDetector(
           onPanUpdate: (dragUpdateDetails) {
-            _dragUpdate(dragUpdateDetails, w, fitScale);
+            _dragUpdate(dragUpdateDetails, w);
           },
           onPanEnd: (dragEndDetails) {
             // reset drag state
@@ -124,8 +125,7 @@ class _MyPuzzleAreaState extends State<PuzzleArea> {
     if (_isDone()) _shuffle();
   }
 
-  void _dragUpdate(
-      DragUpdateDetails dragUpdateDetails, PuzzlePiece w, double fitScale) {
+  void _dragUpdate(DragUpdateDetails dragUpdateDetails, PuzzlePiece w) {
     const thresh = 10; // min pixels to drag to determine direction
     setState(() {
       dragOff += dragUpdateDetails.delta;
@@ -143,18 +143,16 @@ class _MyPuzzleAreaState extends State<PuzzleArea> {
         if (dm!.isRow) {
           final adjPos = rowDisp[w.row] + dragOff.dy.sign.toInt();
           if (adjPos < 0 || adjPos >= PuzzleArea.rows) return;
-          if (widget.pieceSize.height * fitScale < dragOff.dy.abs()) {
+          if (widget.drawPieceSize.height < dragOff.dy.abs()) {
             rotatePos(rowDisp, dispRow, dm!.idx, dragOff.dy.sign.toInt());
-            dragOff -=
-                Offset(0, widget.pieceSize.height * fitScale * dragOff.dy.sign);
+            dragOff -= Offset(0, widget.drawPieceSize.height * dragOff.dy.sign);
           }
         } else {
           final adjPos = colDisp[w.col] + dragOff.dx.sign.toInt();
           if (adjPos < 0 || adjPos > PuzzleArea.cols) return;
-          if (widget.pieceSize.width * fitScale < dragOff.dx.abs()) {
+          if (widget.drawPieceSize.width < dragOff.dx.abs()) {
             rotatePos(colDisp, dispCol, dm!.idx, dragOff.dx.sign.toInt());
-            dragOff -=
-                Offset(widget.pieceSize.width * fitScale * dragOff.dx.sign, 0);
+            dragOff -= Offset(widget.drawPieceSize.width * dragOff.dx.sign, 0);
           }
         }
       }

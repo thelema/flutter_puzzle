@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_puzzle/PuzzleArea.dart';
 
-import 'package:cached_network_image/cached_network_image.dart';
+// import 'package:cached_network_image/cached_network_image.dart';
 
 void main() => runApp(MyApp());
 
@@ -62,15 +62,12 @@ class _MyHomePageState extends State<MyHomePage> {
   // }
 
   // we need to find out the image size, to be used in the PuzzlePiece widget
-  static Future<Size> getImageSize(Image image) async {
-    final Completer<Size> completer = Completer<Size>();
+  static Future<ImageInfo> getImageInfo(Image image) async {
+    final completer = Completer<ImageInfo>();
 
     image.image.resolve(const ImageConfiguration()).addListener(
       ImageStreamListener((ImageInfo info, bool _) {
-        completer.complete(Size(
-          info.image.width.toDouble(),
-          info.image.height.toDouble(),
-        ));
+        completer.complete(info);
       }),
     );
 
@@ -89,11 +86,12 @@ class _MyHomePageState extends State<MyHomePage> {
               child: _image == null
                   ? ImageSelect(images: _images, setImage: setImage)
                   : FutureBuilder(
-                      future: getImageSize(_image!),
-                      builder: (context, AsyncSnapshot<Size> snapshot) {
+                      future: getImageInfo(_image!),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<ImageInfo> snapshot) {
                         if (snapshot.connectionState != ConnectionState.done)
                           return CircularProgressIndicator();
-                        return PuzzleArea(_image!, snapshot.data!);
+                        return PuzzleArea(snapshot.data!);
                       }))),
       floatingActionButton: FloatingActionButton(
         onPressed: setImage(null),
