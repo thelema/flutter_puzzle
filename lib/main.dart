@@ -51,9 +51,9 @@ class _MyHomePageState extends State<MyHomePage> {
     for (final a in ['assets/Giraffe.jfif', 'assets/img.jpg'])
       alist.add(Image.asset(a));
     var blist = _images["Txx"] = [];
-    for (int i = 0; i < 37; i++)
-      blist.add(Image.asset(
-          'assets/txx/t' + (i < 10 ? '0' : '') + i.toString() + '.jpg'));
+    for (int i = 1; i < 37; i++)
+      blist.add(
+          Image.asset('txx/t' + (i < 10 ? '0' : '') + i.toString() + '.jpg'));
   }
 
   // void getImage() {
