@@ -118,6 +118,7 @@ class ImageSelect extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
+        scrollDirection: Axis.vertical,
         children: _images.entries
             .expand((e) => [
                   Text(e.key),
