@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_puzzle/PuzzleArea.dart';
-
-// import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_puzzle/ImageSelect.dart';
 
 void main() => runApp(MyApp());
 
@@ -32,34 +30,6 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   Image? _image;
-  Map<String, List<Image>> _images = {};
-  // final imageDir = Directory('C:\\Users\\ericn\\Downloads');
-
-  _MyHomePageState() {
-    // TODO: get images from other sources
-    // final images = imageDir.listSync().expand((FileSystemEntity e) {
-    //   if (!(e is File)) return [];
-    //   if (p.extension(e.path) != '.jpg') return [];
-    //   return [e];
-    // }).toList();
-    // final image = Image.file(images[Random().nextInt(images.length)]);
-//      final image = Image(image: AssetImage('assets/img.jpg'));
-    // final image = Image.network(
-    //     'https://images.unsplash.com/photo-1547721064-da6cfb341d50');
-    // "https://www.kindacode.com/wp-content/uploads/2021/04/1.png");
-    var alist = _images["Assets"] = [];
-    for (final a in ['assets/Giraffe.jfif', 'assets/img.jpg'])
-      alist.add(Image.asset(a));
-    var blist = _images["Txx"] = [];
-    for (int i = 1; i < 37; i++)
-      blist.add(
-          Image.asset('txx/t' + (i < 10 ? '0' : '') + i.toString() + '.jpg'));
-  }
-
-  // void getImage() {
-  //   final i0 = _images.removeLast();
-  //   setState(() => _image = i0);
-  // }
 
   // we need to find out the image size, to be used in the PuzzlePiece widget
   static Future<ImageInfo> getImageInfo(Image image) async {
@@ -84,7 +54,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: SafeArea(
           child: Center(
               child: _image == null
-                  ? ImageSelect(images: _images, setImage: setImage)
+                  ? ImageSelect(setImage: setImage)
                   : FutureBuilder(
                       future: getImageInfo(_image!),
                       builder: (BuildContext context,
@@ -99,35 +69,5 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Icon(Icons.add),
       ),
     );
-  }
-}
-
-class ImageSelect extends StatelessWidget {
-  const ImageSelect({
-    Key? key,
-    required Map<String, List<Image>> images,
-    required this.setImage,
-  })  : _images = images,
-        super(key: key);
-
-  final Map<String, List<Image>> _images;
-  final void Function() Function(Image? i) setImage;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-        scrollDirection: Axis.vertical,
-        children: _images.entries
-            .expand((e) => [
-                  Text(e.key),
-                  Wrap(
-                      children: e.value
-                          .map((i) => SizedBox(
-                              width: 300,
-                              child: MaterialButton(
-                                  onPressed: setImage(i), child: i)))
-                          .toList())
-                ])
-            .toList());
   }
 }
