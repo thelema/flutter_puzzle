@@ -1,3 +1,6 @@
+//import 'dart:html';
+//import 'dart:typed_data' show Uint8List;
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -15,6 +18,7 @@ class ImageSelect extends StatefulWidget {
 
 class _ImageSelectState extends State<ImageSelect> {
   List<Image> webImg = [];
+  Image? pasteImage;
 
   _ImageSelectState() {
     // TODO: get images from other sources
@@ -57,15 +61,31 @@ class _ImageSelectState extends State<ImageSelect> {
     return ret;
   }
 
-  void pasteImage() {}
+  Image? getTxxImage(int i) {
+    final fn = 'txx/t' + (i < 10 ? '0' : '') + i.toString() + '.jpg';
+    return Image.asset(fn);
+  }
 
   @override
   Widget build(BuildContext context) {
+    // document.onPaste.listen((ClipboardEvent e) {
+    //   DataTransferItemList? items = e.clipboardData?.items;
+    //   if (items != null && items.length != null) {
+    //     for (int i = 0; i < items.length!; i++) {
+    //       var blob = items[i].getAsFile();
+    //       if (blob != null) {
+    //         setState(() => pasteImage =
+    //             Image.memory(Uint8List.fromList(blob.toString().codeUnits)));
+    //         break;
+    //       }
+    //     }
+    //   }
+    // });
     final img = (Image i) => SizedBox(
         width: 300,
         child: MaterialButton(onPressed: widget.setImage(i), child: i));
     return ListView(scrollDirection: Axis.vertical, children: [
-      MaterialButton(onPressed: pasteImage, child: Text("Paste Image")),
+      if (pasteImage != null) ...[Text('Pasted'), img(pasteImage!)],
       Text('FromWeb'),
       TextField(
         onSubmitted: (String s) =>
@@ -84,8 +104,7 @@ class _ImageSelectState extends State<ImageSelect> {
       Text('Txx'),
       Wrap(children: [
         for (int i = 1; i < 37; i++)
-          img(Image.asset(
-              'txx/t' + (i < 10 ? '0' : '') + i.toString() + '.jpg')),
+          if (getTxxImage(i) != null) img(getTxxImage(i)!),
       ]),
     ]);
     // _images.entries
