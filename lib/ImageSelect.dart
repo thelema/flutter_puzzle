@@ -1,5 +1,4 @@
-//import 'dart:html';
-//import 'dart:typed_data' show Uint8List;
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -39,31 +38,20 @@ class _ImageSelectState extends State<ImageSelect> {
   }
 
   static Future<List<Image>> scrape(String s) async {
-    final body = () async {
-      try {
-        Uri u = Uri.parse(s);
-        // fetch URL and scrape it for images
-        var resp = await http.get(u);
-        return resp.body;
-      } catch (_) {
-        return s;
-      }
-    }();
-    var exp = RegExp(r'(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-?=%.]+');
-    var exp2 = RegExp(r'jpg|png|jpeg');
+    final exp = RegExp(r'(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-?=%.]+');
+    final exp2 = RegExp(r'jpg|png|jpeg');
+    if (exp2.hasMatch(s)) return [Image.network(s)];
+
+    final u = Uri.parse(s);
+    var resp = await http.get(u);
     List<Image> ret = [];
-    for (var match in exp.allMatches(await body)) {
-      var ss = s.substring(match.start, match.end);
-      print('found URL: ss\n');
+    for (var match in exp.allMatches(resp.body)) {
+      var ss = resp.body.substring(match.start, match.end);
+      print('found URL: $ss\n');
       if (exp2.hasMatch(ss)) ret.add(Image.network(ss));
     }
 
     return ret;
-  }
-
-  Image? getTxxImage(int i) {
-    final fn = 'txx/t' + (i < 10 ? '0' : '') + i.toString() + '.jpg';
-    return Image.asset(fn);
   }
 
   @override
@@ -84,6 +72,7 @@ class _ImageSelectState extends State<ImageSelect> {
     final img = (Image i) => SizedBox(
         width: 300,
         child: MaterialButton(onPressed: widget.setImage(i), child: i));
+    final imgf = (String fn) => img(Image.file(File(fn)));
     return ListView(scrollDirection: Axis.vertical, children: [
       if (pasteImage != null) ...[Text('Pasted'), img(pasteImage!)],
       Text('FromWeb'),
@@ -97,15 +86,16 @@ class _ImageSelectState extends State<ImageSelect> {
       Text('Assets'),
       Wrap(
         children: [
-          for (final a in ['assets/Giraffe.jfif', 'assets/img.jpg'])
-            img(Image.asset(a)),
+          for (final a in ['assets/Giraffe.jfif', 'assets/img.jpg']) imgf(a),
         ],
       ),
       Text('Txx'),
-      Wrap(children: [
-        for (int i = 1; i < 37; i++)
-          if (getTxxImage(i) != null) img(getTxxImage(i)!),
-      ]),
+      Wrap(
+          children: Directory('assets/txx')
+              .listSync(recursive: true)
+              .where((e) => e.path.endsWith('.jpg'))
+              .map((e) => imgf(e.path))
+              .toList()),
     ]);
     // _images.entries
     //     .expand((e) => [
