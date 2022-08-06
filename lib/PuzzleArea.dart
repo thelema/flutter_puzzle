@@ -178,23 +178,25 @@ class _MyPuzzleAreaState extends State<PuzzleArea> {
     assert(idx.isNotEmpty);
     assert(dir.abs() == 1); // must be 1 or -1
     print('Rotate $idxDisp, $dispIdx, $idx, $dir');
-    if (dir == 1) {
-      // moving down; move item from below idxes to above them
-      // A I0..If temp B => A temp I0..If B
-      final temp = dispIdx[idxDisp[idx.last] + 1];
-      idxDisp[temp] -= idx.length;
-      for (int i in idx) idxDisp[i]++;
-      // fix dispIdx
-      for (int i in [temp, ...idx]) dispIdx[idxDisp[i]] = i;
-    } else {
-      // moving up; move item from above idxes to below them
-      // A temp I0..If B => A I0..If temp B
-      final temp = dispIdx[idxDisp[idx.first] - 1];
-      idxDisp[temp] += idx.length;
-      for (int i in idx) idxDisp[i]--;
-      // fix dispIdx
-      for (int i in [temp, ...idx]) dispIdx[idxDisp[i]] = i;
-    }
-    print('is $idxDisp, $dispIdx');
+    try {
+      if (dir == 1) {
+        // moving down; move item from below idxes to above them
+        // A I0..If temp B => A temp I0..If B
+        final temp = dispIdx[idxDisp[idx.last] + 1];
+        idxDisp[temp] -= idx.length;
+        for (int i in idx) idxDisp[i]++;
+        // fix dispIdx
+        for (int i in [temp, ...idx]) dispIdx[idxDisp[i]] = i;
+      } else {
+        // moving up; move item from above idxes to below them
+        // A temp I0..If B => A I0..If temp B
+        final temp = dispIdx[idxDisp[idx.first] - 1];
+        idxDisp[temp] += idx.length;
+        for (int i in idx) idxDisp[i]--;
+        // fix dispIdx
+        for (int i in [temp, ...idx]) dispIdx[idxDisp[i]] = i;
+      }
+      print('is $idxDisp, $dispIdx');
+    } catch (e) {}
   }
 }
