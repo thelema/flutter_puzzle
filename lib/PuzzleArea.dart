@@ -106,18 +106,15 @@ class _MyPuzzleAreaState extends State<PuzzleArea> {
 
   bool _isDone() {
     for (int x = 0; x < PuzzleArea.cols; x++) if (dispRow[x] != x) return false;
-
     for (int y = 0; y < PuzzleArea.rows; y++) if (dispCol[y] != y) return false;
-
     return true;
   }
 
   void _shuffle() {
     rowDisp.shuffle(_rand);
     colDisp.shuffle(_rand);
-    // fix up inverse function
+    // fix up inverse lookup tables
     for (int x = 0; x < PuzzleArea.cols; x++) dispRow[rowDisp[x]] = x;
-
     for (int y = 0; y < PuzzleArea.rows; y++) dispCol[colDisp[y]] = y;
   }
 
@@ -197,6 +194,8 @@ class _MyPuzzleAreaState extends State<PuzzleArea> {
         for (int i in [temp, ...idx]) dispIdx[idxDisp[i]] = i;
       }
       print('is $idxDisp, $dispIdx');
-    } catch (e) {}
+    } catch (e) {
+      print('Failed $e');
+    }
   }
 }
